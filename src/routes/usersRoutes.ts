@@ -17,7 +17,7 @@ userRouter.get(
       res.json(users);
     } catch (error) {
       res.status(500).json({
-        error: error,
+        db: db,
         message: "Error retrieving users",
       });
     }
