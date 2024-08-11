@@ -3,16 +3,32 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const connector: Function = async (dbName: string) => {
-  const uri: string = process.env.MONGODB_URI as string;
+let client: MongoClient;
+let dbInstance: Db;
 
-  const client: MongoClient = new MongoClient(uri);
-  await client.connect().then(()=>{
-    const dbInstance = client.db(dbName);
-    return dbInstance;
-  }).catch((reason)=>{
-    return reason;
-  });
-};
+async function connectToDatabase(): Promise<void> {
+  if (dbInstance) return;
 
-export default connector;
+  try {
+    const uri: string = process.env.MONGODB_URI as string;
+    if (!uri) {
+      throw new Error("Database URI is not defined");
+    }
+    client = new MongoClient(uri);
+    await client.connect();
+    dbInstance = client.db("wt-data");
+  } catch (err) {
+    console.error("Database connection failed", err);
+    throw err;
+  }
+}
+
+export async function getDb(): Promise<Db> {
+  if (!dbInstance) {
+    await connectToDatabase(); // Ensure the database is connected before returning the instance
+  }
+  if (!dbInstance) {
+    throw new Error("Failed to connect to the database");
+  }
+  return dbInstance;
+}
