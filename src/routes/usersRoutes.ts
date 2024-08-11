@@ -1,23 +1,24 @@
 import { Router, Request, Response } from "express";
+import connector from "../db/db";
 import Session from "../types/session";
+import { Db, ObjectId } from "mongodb";
 import { v4 as uuidv4 } from "uuid";
-import { ObjectId } from "mongodb";
 import User from "../types/user";
-import getDb from "../db/db";
 import bcrypt from "bcrypt";
 
+
+const db: Db | any = connector("wt-data");
 const userRouter = Router();
-const db = getDb("wt-data");
 
 userRouter.get(
   "/v1/users/",
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const users = await db.collection("users").find({}).toArray();
+      const users = await db?.collection("users").find({}).toArray();
       res.json(users);
     } catch (error) {
       res.status(500).json({
-        db: db,
+        dbStatus: db,
         message: "Error retrieving users",
       });
     }
