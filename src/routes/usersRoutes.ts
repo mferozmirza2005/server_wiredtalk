@@ -16,8 +16,10 @@ userRouter.get(
       const users = await db.collection("users").find({}).toArray();
       res.json(users);
     } catch (error) {
-      console.error(error, db);
-      res.status(500).send("Error retrieving users");
+      res.status(500).json({
+        error: error,
+        message: "Error retrieving users",
+      });
     }
   }
 );
@@ -45,7 +47,9 @@ userRouter.post(
             userId: userData._id,
             sessionId: uuidv4(),
           };
-          const sessionResult = await db.collection("session").insertOne(sessionData);
+          const sessionResult = await db
+            .collection("session")
+            .insertOne(sessionData);
           if (sessionResult.acknowledged) {
             res.status(201).json({
               userId: sessionData._id,
@@ -73,7 +77,9 @@ userRouter.post(
       const result = await db
         .collection("users")
         .deleteOne({ _id: new ObjectId(userId) });
-      res.status(result.acknowledged ? 202 : 404).send(result.acknowledged ? "User deleted" : "User deletion failed");
+      res
+        .status(result.acknowledged ? 202 : 404)
+        .send(result.acknowledged ? "User deleted" : "User deletion failed");
     } catch (error) {
       console.error(error);
       res.status(500).send("Error deleting user");
@@ -91,7 +97,9 @@ userRouter.post(
       const result = await db
         .collection("users")
         .updateOne({ _id: new ObjectId(userId) }, { $set: updateData });
-      res.status(result.acknowledged ? 201 : 404).send(result.acknowledged ? "User updated" : "User update failed");
+      res
+        .status(result.acknowledged ? 201 : 404)
+        .send(result.acknowledged ? "User updated" : "User update failed");
     } catch (error) {
       console.error(error);
       res.status(500).send("Error updating user");
