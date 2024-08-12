@@ -12,20 +12,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({
     origin: [
         "http://54.255.181.66",
-        "http://localhost:5000"
+        "http://localhost:3000"
     ],
 }));
 
 app.get("/", (req: Request, res: Response): void => {
     res.send("Hello World! from server.");
 });
-
-app.get("/about", (req: Request, res: Response): void => {
-    res.send("Welcome to about page.");
-});
-
 app.use("/api", routes);
-
 
 const PORT: string | number = process.env.PORT || 5000;
 app.listen(PORT, (): void => {
