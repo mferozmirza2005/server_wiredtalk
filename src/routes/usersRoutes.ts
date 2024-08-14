@@ -209,4 +209,29 @@ userRouter.post(
   }
 );
 
+userRouter.post(
+  "/v1/user/update-pwd/",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const db = await getDatabase();
+      const userId: string = req.body.userId;
+      const updatePwd: string = req.body.updatePwd;
+
+      const updateData = {
+        pwd: updatePwd,
+        hashed: bcrypt.hashSync(updatePwd, bcrypt.genSaltSync(10)),
+      }
+      const result = await db
+        .collection("users")
+        .updateOne({ _id: new ObjectId(userId) }, { $set: updateData });
+      res
+        .status(result.acknowledged ? 200 : 404)
+        .send(result.acknowledged ? "Password updated" : "Password update failed");
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error updating password");
+    }
+  }
+);
+
 export default userRouter;
