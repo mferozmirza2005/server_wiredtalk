@@ -1,12 +1,16 @@
 import { Router, Request, Response } from "express";
+import { GridFSBucket } from "mongodb";
 import Session from "../types/session";
 import { v4 as uuidv4 } from "uuid";
 import { ObjectId } from "mongodb";
+import { Readable } from "stream";
 import { getDb } from "../db/db";
 import User from "../types/user";
+import multer from "multer";
 import bcrypt from "bcrypt";
 
 const userRouter = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 const getDatabase = async () => {
   try {
@@ -112,11 +116,13 @@ userRouter.post(
 
       const sessionId = uuidv4();
 
-      const sessionResult = await db.collection("session").updateOne(
-        { userId: existingUser._id },
-        { $set: { sessionId: sessionId } },
-        { upsert: true }
-      );
+      const sessionResult = await db
+        .collection("session")
+        .updateOne(
+          { userId: existingUser._id },
+          { $set: { sessionId: sessionId } },
+          { upsert: true }
+        );
 
       if (!sessionResult.acknowledged) {
         res.status(403).send("Error occurred while creating session.");
@@ -160,7 +166,7 @@ userRouter.post(
       }
 
       res.status(200).json({
-        ...userData
+        ...userData,
       });
     } catch (error) {
       console.error(error);
@@ -220,16 +226,79 @@ userRouter.post(
       const updateData = {
         pwd: updatePwd,
         hashed: bcrypt.hashSync(updatePwd, bcrypt.genSaltSync(10)),
-      }
+      };
       const result = await db
         .collection("users")
         .updateOne({ _id: new ObjectId(userId) }, { $set: updateData });
       res
         .status(result.acknowledged ? 200 : 404)
-        .send(result.acknowledged ? "Password updated" : "Password update failed");
+        .send(
+          result.acknowledged ? "Password updated" : "Password update failed"
+        );
     } catch (error) {
       console.error(error);
       res.status(500).send("Error updating password");
+    }
+  }
+);
+
+userRouter.post(
+  "/v1/user/uploadImage/",
+  upload.single("file"),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const db = await getDatabase();
+      const file = req.file;
+
+      if (!file) {
+        res.status(400).send("No file uploaded");
+        return;
+      }
+
+      const bucket = new GridFSBucket(db);
+      const uploadStream = bucket.openUploadStream(file.originalname);
+
+      const readableStream = Readable.from(file.buffer);
+
+      readableStream.pipe(uploadStream);
+
+      uploadStream.on('finish', () => {
+        res.status(200).send("File uploaded successfully.");
+      });
+
+      uploadStream.on('error', (error) => {
+        console.error(error);
+        res.status(500).send("Error uploading file");
+      });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error uploading file");
+    }
+  }
+);
+
+userRouter.get(
+  "/v1/user/image/:filename",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const db = await getDatabase();
+      const filename = req.params.filename;
+
+      const bucket = new GridFSBucket(db);
+      const downloadStream = bucket.openDownloadStreamByName(filename);
+
+      downloadStream.on("error", () => {
+        res.status(404).send("Image not found");
+      });
+
+      res.setHeader("Content-Type", "image/jpeg");
+      res.setHeader("Cache-Control", "public, max-age=31536000");
+
+      downloadStream.pipe(res);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error retrieving image");
     }
   }
 );
