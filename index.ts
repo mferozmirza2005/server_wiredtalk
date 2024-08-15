@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
     origin: [
-        "http://54.255.181.66",
+        "http://47.129.236.26 ",
         "http://localhost:3000"
     ],
 }));
