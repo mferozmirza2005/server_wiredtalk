@@ -14,16 +14,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: "*",
+    origin: [
+      "http://47.128.231.167",
+      "http://localhost:3000",
+      "https://wiredtalk-backend.vercel.app/",
+    ],
     methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"],
+    credentials: true
   })
 );
 
 const io = new SocketIOServer(server, {
   cors: {
-    origin: "*",
+    origin: [
+      "http://47.128.231.167",
+      "http://localhost:3000",
+      "https://wiredtalk-backend.vercel.app/",
+    ],
     methods: ["GET", "POST"],
+    credentials: true
   },
 });
 
@@ -53,7 +62,6 @@ io.on("connection", (socket: Socket) => {
   socket.on("declined", (data) => {
     socket.broadcast.emit("declined", data);
   });
-
 
   socket.on("offer", (offer) => {
     console.log("Broadcasting offer.");
