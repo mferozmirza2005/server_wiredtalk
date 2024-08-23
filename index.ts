@@ -9,23 +9,23 @@ dotenv.config();
 
 const app: Application = express();
 const server: HTTPServer = createServer(app);
-const io = new SocketIOServer(server, {
-  cors: {
-    origin: "*",
-  },
-});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: [
-      "https://47.128.231.167",
-      "http://localhost:3000",
-      "http://192.168.100.231:3000",
-    ],
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
   })
 );
+
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
 app.get("/", (req: Request, res: Response): void => {
   res.send("Hello World! from server.");
@@ -34,7 +34,7 @@ app.use("/api", routes);
 
 const PORT: string | number = process.env.PORT || 5000;
 server.listen(PORT, (): void => {
-  console.log(`http://localhost:${PORT}/`);
+  console.log(`Server running at http://localhost:${PORT}/`);
 });
 
 io.on("connection", (socket: Socket) => {
@@ -54,7 +54,7 @@ io.on("connection", (socket: Socket) => {
     socket.broadcast.emit("declined", data);
   });
 
-  
+
   socket.on("offer", (offer) => {
     console.log("Broadcasting offer.");
     socket.broadcast.emit("offer", offer);
