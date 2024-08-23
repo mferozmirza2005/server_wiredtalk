@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: "http://47.128.231.167",
+    origin: "*",
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
   })
@@ -22,7 +22,7 @@ app.use(
 
 const io = new SocketIOServer(server, {
   cors: {
-    origin: "http://47.128.231.167", // Allow EC2 instance IP
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
