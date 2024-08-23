@@ -11,12 +11,7 @@ const app: Application = express();
 const server: HTTPServer = createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: [
-      "http://47.128.231.167",
-      "http://localhost:3000",
-      "http://192.168.100.231:3000",
-    ],
-    methods: ["GET", "POST"],
+    origin: "*",
   },
 });
 
