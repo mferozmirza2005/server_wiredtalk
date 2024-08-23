@@ -15,7 +15,7 @@
       "dest": "/",
       "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
       "headers": {
-        "Access-Control-Allow-Origin": ["http://47.128.231.167", "https://wiredtalk-backend.vercel.app/"]
+        "Access-Control-Allow-Origin": "*"
       }
     }
   ]

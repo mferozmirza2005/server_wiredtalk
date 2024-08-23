@@ -14,24 +14,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: [
-      "http://47.128.231.167",
-      "http://localhost:3000",
-      "https://wiredtalk-backend.vercel.app/",
-    ],
-    methods: ["GET", "POST"],
+    origin: "*",
     credentials: true
   })
 );
 
 const io = new SocketIOServer(server, {
   cors: {
-    origin: [
-      "http://47.128.231.167",
-      "http://localhost:3000",
-      "https://wiredtalk-backend.vercel.app/",
-    ],
-    methods: ["GET", "POST"],
+    origin: "*",
     credentials: true
   },
 });
