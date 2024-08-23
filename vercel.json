@@ -18,5 +18,10 @@
         "Access-Control-Allow-Origin": "*"
       }
     }
-  ]
+  ],
+  "functions": {
+    "api/**.js": {
+      "runtime": "@vercel/node"
+    }
+  }
 }
