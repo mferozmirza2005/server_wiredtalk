@@ -1,7 +1,7 @@
 import express, { Application, Request, Response } from "express";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { createServer, Server as HTTPServer } from "http";
-import routes from "./src/routes/routes";
+import routes from "./routes/routes";
 import dotenv from "dotenv";
 import cors from "cors";
 
