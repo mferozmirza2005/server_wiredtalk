@@ -52,7 +52,14 @@ io.on("connection", (socket: Socket) => {
   socket.on("declined", (data) => {
     socket.broadcast.emit("declined", data);
   });
-
+  
+  socket.on("one-to-one-message", (data) => {
+    io.emit("one-to-one-message", data);
+  });
+  
+  socket.on("message-read", (data) => {
+    io.emit("message-read", data);
+  });
 
   socket.on("offer", (offer) => {
     console.log("Broadcasting offer.");
