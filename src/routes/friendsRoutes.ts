@@ -76,6 +76,40 @@ friendsRouter.get(
 );
 
 friendsRouter.post(
+  "/v1/friend/requested/",
+  async (req: Request, res: Response) => {
+    try {
+      const requestUser: string = req.body.requestUser;
+      const acceptUser: string = req.body.acceptUser;
+
+      const db = await getDatabase();
+      const result = await db.collection("friendRequests").findOne({
+        $or: [
+          {
+            requestUser: new ObjectId(requestUser),
+            acceptUser: new ObjectId(acceptUser),
+          },
+          {
+            requestUser: new ObjectId(acceptUser),
+            acceptUser: new ObjectId(requestUser),
+          },
+        ],
+      });
+
+      if (!result) {
+        res.status(200).json({ exist: false });
+        return;
+      }
+
+      res.status(200).json({ exist: true });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error in send request");
+    }
+  }
+);
+
+friendsRouter.post(
   "/v1/friends/request",
   async (req: Request, res: Response) => {
     try {
@@ -156,7 +190,11 @@ friendsRouter.get(
       const db = await getDatabase();
       const requests = await db
         .collection("friendRequests")
-        .find({ acceptUser: new ObjectId(acceptUser) })
+        .find({
+          acceptUser: new ObjectId(acceptUser),
+          accepted: false,
+          ignored: false,
+        })
         .toArray();
 
       if (requests.length === 0) {
@@ -196,7 +234,8 @@ friendsRouter.get(
 
       const db = await getDatabase();
       const requests = await db
-        .collection("friendRequests").deleteOne({ _id: new ObjectId(connectionId) });
+        .collection("friendRequests")
+        .deleteOne({ _id: new ObjectId(connectionId) });
 
       res.status(200).json("Friend removed successfully.");
     } catch (error) {
