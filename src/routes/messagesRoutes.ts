@@ -93,4 +93,23 @@ messagesRouter.get(
   }
 );
 
+messagesRouter.post(
+  "/v1/message/one-to-one/delete",
+  async (req: Request, res: Response) => {
+    try {
+      const messageId: string = req.body.messageId;
+
+      const db = await getDatabase();
+      const result = await db
+        .collection("one-to-one-messages")
+        .deleteOne({ _id: new ObjectId(messageId) });
+
+      res.status(200).json("Message deleted successfully.");
+    } catch (error) {
+      console.log(error);
+      res.status(500).send("Error Occurred!");
+    }
+  }
+);
+
 export default messagesRouter;

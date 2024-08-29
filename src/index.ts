@@ -57,6 +57,10 @@ io.on("connection", (socket: Socket) => {
     io.emit("one-to-one-message", data);
   });
   
+  socket.on("one-to-one-message", (data) => {
+    io.emit("one-to-one-delete", data);
+  });
+  
   socket.on("message-read", (data) => {
     io.emit("message-read", data);
   });
