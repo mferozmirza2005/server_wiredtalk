@@ -21,7 +21,7 @@ messagesRouter.post(
         receiverId,
         message,
         timming,
-        seen
+        seen,
       }: {
         senderId: string;
         receiverId: string;
@@ -86,6 +86,29 @@ messagesRouter.get(
         .toArray();
 
       res.status(200).json(messages);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send("Error Occurred!");
+    }
+  }
+);
+
+messagesRouter.post(
+  "/v1/message/one-to-one/edit",
+  async (req: Request, res: Response) => {
+    try {
+      const messageId: string = req.body.messageId;
+      const updatedMessage: string = req.body.updatedMessage;
+
+      const db = await getDatabase();
+      const result = await db
+        .collection("one-to-one-messages")
+        .updateOne(
+          { _id: new ObjectId(messageId) },
+          { $set: { message: updatedMessage } }
+        );
+
+      res.status(200).json("Message deleted successfully.");
     } catch (error) {
       console.log(error);
       res.status(500).send("Error Occurred!");
