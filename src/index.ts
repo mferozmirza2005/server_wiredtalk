@@ -52,6 +52,10 @@ io.on("connection", (socket: Socket) => {
   socket.on("declined", (data) => {
     socket.broadcast.emit("declined", data);
   });
+
+  socket.on("receiver-busy", (data) => {
+    socket.broadcast.emit("receiver-busy", data);
+  });
   
   socket.on("one-to-one-message", (data) => {
     io.emit("one-to-one-message", data);
