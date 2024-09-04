@@ -56,6 +56,10 @@ io.on("connection", (socket: Socket) => {
   socket.on("receiver-busy", (data) => {
     socket.broadcast.emit("receiver-busy", data);
   });
+
+  socket.on("change-event", (data) => {
+    socket.broadcast.emit("change-event", data);
+  });
   
   socket.on("one-to-one-message", (data) => {
     io.emit("one-to-one-message", data);
