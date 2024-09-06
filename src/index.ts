@@ -2,12 +2,21 @@ import express, { Application, Request, Response } from "express";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { createServer, Server as HTTPServer } from "http";
 import routes from "./routes/routes";
+import webPush from "web-push";
 import dotenv from "dotenv";
 import cors from "cors";
 
 dotenv.config();
 
 const app: Application = express();
+const vapidkeys = webPush.generateVAPIDKeys();
+let subscriptions: any[] = [];
+
+webPush.setVapidDetails(
+  'mailto:m.ferozmirza2005@gmail.com',
+  vapidkeys.publicKey,
+  vapidkeys.privateKey
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -29,6 +38,56 @@ const io = new SocketIOServer(server, {
 app.get("/", (req: Request, res: Response): void => {
   res.send("Hello World! from server.");
 });
+
+app.get("/vapidkeys", (req: Request, res: Response) => {
+  res.status(200).json({ keys: vapidkeys });
+});
+
+app.post('/api/subscribe', (req: Request, res: Response) => {
+  const subscriptionData = req.body;
+  let exist = false;
+  subscriptions.map((subscribData)=>{
+    if(subscriptionData.userId === subscribData.userId) {
+      subscribData.subscription = subscriptionData.subscription;
+      exist = true;
+    }
+  })
+  if (exist === false) {
+    subscriptions.push(subscriptionData);
+  }
+  res.status(200).json({ message: 'Subscription received' });
+});
+
+app.post('/api/sendNotification', (req, res) => {
+  const { 
+    _id,
+    title,
+    body,
+    // icon,
+    // badge 
+  } = req.body;
+
+  const notificationPayload = {
+    title,
+    body,
+    // icon,
+    // badge
+  };
+
+  Promise.all(subscriptions.map(subscriptionData => {
+    if(_id === subscriptionData.userId) {
+      return webPush.sendNotification(subscriptionData.subscription, JSON.stringify(notificationPayload));
+    }
+  }))
+    .then(() => {
+      res.status(200).json({ message: 'Notification sent successfully' });
+    })
+    .catch((error) => {
+      console.error('Error sending notification:', error);
+      res.status(500).json({ error: 'Error sending notification' });
+    });
+});
+
 app.use("/api", routes);
 
 const PORT: string | number = process.env.PORT || 5000;
@@ -60,19 +119,19 @@ io.on("connection", (socket: Socket) => {
   socket.on("change-event", (data) => {
     socket.broadcast.emit("change-event", data);
   });
-  
+
   socket.on("one-to-one-message", (data) => {
     io.emit("one-to-one-message", data);
   });
-  
+
   socket.on("one-to-one-delete", (data) => {
     io.emit("one-to-one-delete", data);
   });
-  
+
   socket.on("one-to-one-edited", (data) => {
     io.emit("one-to-one-edited", data);
   });
-  
+
   socket.on("message-read", (data) => {
     io.emit("message-read", data);
   });
