@@ -63,15 +63,17 @@ app.post('/api/sendNotification', (req, res) => {
     _id,
     title,
     body,
-    // icon,
-    // badge 
+    type,
+    icon,
+    badge 
   } = req.body;
 
   const notificationPayload = {
     title,
     body,
-    // icon,
-    // badge
+    type,
+    icon,
+    badge
   };
 
   Promise.all(subscriptions.map(subscriptionData => {
