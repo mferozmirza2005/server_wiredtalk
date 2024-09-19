@@ -122,6 +122,10 @@ io.on("connection", (socket: Socket) => {
     socket.broadcast.emit("change-event", data);
   });
 
+  socket.on("recording", (data) => {
+    io.emit("recording", data);
+  });
+
   socket.on("one-to-one-message", (data) => {
     io.emit("one-to-one-message", data);
   });
