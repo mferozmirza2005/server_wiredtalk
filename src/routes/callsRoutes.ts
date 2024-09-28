@@ -1,8 +1,5 @@
 import { Router, Request, Response } from "express";
 import CallData from "../models/calls";
-import { ObjectId } from "mongodb";
-import { getDb } from "../db/db";
-
 const callsRouter = Router();
 
 const callsData: { [key: string]: CallData } = {};

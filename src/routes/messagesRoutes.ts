@@ -39,6 +39,7 @@ messagesRouter.post(
         message,
         timming,
         seen,
+        type: "message",
       });
 
       res.status(200).json(data.insertedId);
