@@ -57,7 +57,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: "https://wiredtalk.vercel.app",
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -66,7 +66,7 @@ app.use(
 const server: HTTPServer = createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: "https://wiredtalk.vercel.app",
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
