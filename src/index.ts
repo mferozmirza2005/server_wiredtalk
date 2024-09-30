@@ -32,7 +32,7 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 } });
+const upload = multer({ storage: storage });
 dotenv.config();
 
 const getDatabase = async () => {
@@ -59,7 +59,6 @@ app.use(
   cors({
     origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -370,8 +369,8 @@ app.post('/upload-recording/', upload.fields([
   { name: 'audioFile1', maxCount: 1 },
   { name: 'audioFile2', maxCount: 1 },
 ]), async (req, res) => {
-  console.log(req.body);  // Log request body
-  console.log(req.files);  // Log uploaded files
+  console.log(req.body);
+  console.log(req.files);
 
   // Check if files were uploaded
   if (!req.files) {
@@ -403,15 +402,6 @@ app.post("/recording/delete/", async (req, res) => {
   db.collection("one-to-one-messages").deleteOne({ filePath: filename });
 
   res.status(200).send("Recording Deleted successfully!");
-});
-
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  if (err instanceof multer.MulterError) {
-    return res.status(500).send(err.message);
-  } else if (err) {
-    return res.status(500).send(err);
-  }
-  next();
 });
 
 const PORT: string | number = process.env.PORT || 5000;
