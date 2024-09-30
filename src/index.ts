@@ -32,7 +32,7 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 } });
 dotenv.config();
 
 const getDatabase = async () => {
@@ -365,8 +365,21 @@ app.post(
   }
 );
 
-app.post("/upload-recording/", upload.any(), async (req, res) => {
-  console.log(req);
+app.post('/upload-recording/', upload.fields([
+  { name: 'videoFile', maxCount: 1 },
+  { name: 'audioFile1', maxCount: 1 },
+  { name: 'audioFile2', maxCount: 1 },
+]), async (req, res) => {
+  console.log(req.body);  // Log request body
+  console.log(req.files);  // Log uploaded files
+
+  // Check if files were uploaded
+  if (!req.files) {
+    return res.status(400).send("Missing required files.");
+  }
+
+  // Your existing processing logic goes here
+  res.status(200).send("Files uploaded successfully.");
 });
 
 app.get("/recording/:filename", (req, res) => {
