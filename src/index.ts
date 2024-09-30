@@ -280,7 +280,7 @@ app.post(
       );
       const outputVideoFilePath = path.join(
         uploadsDir,
-        `output_${files.videoFile[0].originalname}`
+        `${files.videoFile[0].originalname.replace("video-", "")}`
       );
 
       const cleanAudioPromises = [audioFile1Path, audioFile2Path].map(
