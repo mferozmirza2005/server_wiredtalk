@@ -331,14 +331,14 @@ app.post(
             });
 
             const db = await getDatabase();
-            const videoPath = files.videoFile;
-
-            if (videoPath) {
+            if (files.videoFile) {
+              const videoPath = files.videoFile[0].originalname.replace("video-", "");
+              
               db.collection("one-to-one-messages").insertOne({
                 _id: new ObjectId(),
                 senderId: new ObjectId(senderId),
                 receiverId: new ObjectId(receiverId),
-                filePath: `output_${videoPath[0].originalname}`,
+                filePath: videoPath,
                 timming,
                 seen: false,
                 type: "recording",
@@ -353,10 +353,7 @@ app.post(
           });
       });
 
-      res.status(200).send({
-        message: "Video updated successfully.",
-        outputVideoFile: outputVideoFilePath,
-      });
+      res.status(200).send("Recording uploaded successfully.");
     } catch (error) {
       console.error("Processing error:", error);
       res.status(500).send("Error processing files.");
