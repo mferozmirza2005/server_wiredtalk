@@ -225,6 +225,7 @@ app.post(
     { name: "audioFile2", maxCount: 1 },
   ]),
   async (req, res) => {
+    console.log(req);
     if (!req.files) {
       return res.status(400).send("No file uploaded.");
     }
