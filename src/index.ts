@@ -226,142 +226,143 @@ app.post(
   ]),
   async (req, res) => {
     console.log(req);
-    if (!req.files) {
-      return res.status(400).send("No file uploaded.");
-    }
+    res.status(200).send("Request accepted successfully.");
+    // if (!req.files) {
+    //   return res.status(400).send("No file uploaded.");
+    // }
 
-    const {
-      senderId,
-      receiverId,
-      timming,
-    }: {
-      senderId: string;
-      receiverId: string;
-      timming: string;
-    } = req.body;
+    // const {
+    //   senderId,
+    //   receiverId,
+    //   timming,
+    // }: {
+    //   senderId: string;
+    //   receiverId: string;
+    //   timming: string;
+    // } = req.body;
 
-    const files = req.files as {
-      videoFile?: Express.Multer.File[];
-      audioFile1?: Express.Multer.File[];
-      audioFile2?: Express.Multer.File[];
-    };
+    // const files = req.files as {
+    //   videoFile?: Express.Multer.File[];
+    //   audioFile1?: Express.Multer.File[];
+    //   audioFile2?: Express.Multer.File[];
+    // };
 
-    if (
-      !files.videoFile ||
-      files.videoFile.length === 0 ||
-      !files.audioFile1 ||
-      files.audioFile1.length === 0 ||
-      !files.audioFile2 ||
-      files.audioFile2.length === 0
-    ) {
-      return res.status(400).send("Missing required files.");
-    }
+    // if (
+    //   !files.videoFile ||
+    //   files.videoFile.length === 0 ||
+    //   !files.audioFile1 ||
+    //   files.audioFile1.length === 0 ||
+    //   !files.audioFile2 ||
+    //   files.audioFile2.length === 0
+    // ) {
+    //   return res.status(400).send("Missing required files.");
+    // }
 
-    try {
-      const videoFilePath = path.join(
-        uploadsDir,
-        files.videoFile[0].originalname
-      );
-      const audioFile1Path = path.join(
-        uploadsDir,
-        files.audioFile1[0].originalname
-      );
-      const audioFile2Path = path.join(
-        uploadsDir,
-        files.audioFile2[0].originalname
-      );
+    // try {
+    //   const videoFilePath = path.join(
+    //     uploadsDir,
+    //     files.videoFile[0].originalname
+    //   );
+    //   const audioFile1Path = path.join(
+    //     uploadsDir,
+    //     files.audioFile1[0].originalname
+    //   );
+    //   const audioFile2Path = path.join(
+    //     uploadsDir,
+    //     files.audioFile2[0].originalname
+    //   );
 
-      const cleanedAudio1Path = path.join(
-        uploadsDir,
-        `${files.audioFile1[0].originalname.split(".")[0]}.mp3`
-      );
-      const cleanedAudio2Path = path.join(
-        uploadsDir,
-        `${files.audioFile2[0].originalname.split(".")[0]}.mp3`
-      );
-      const outputVideoFilePath = path.join(
-        uploadsDir,
-        `output_${files.videoFile[0].originalname}`
-      );
+    //   const cleanedAudio1Path = path.join(
+    //     uploadsDir,
+    //     `${files.audioFile1[0].originalname.split(".")[0]}.mp3`
+    //   );
+    //   const cleanedAudio2Path = path.join(
+    //     uploadsDir,
+    //     `${files.audioFile2[0].originalname.split(".")[0]}.mp3`
+    //   );
+    //   const outputVideoFilePath = path.join(
+    //     uploadsDir,
+    //     `output_${files.videoFile[0].originalname}`
+    //   );
 
-      const cleanAudioPromises = [audioFile1Path, audioFile2Path].map(
-        (audioPath, index) => {
-          const cleanedAudioPath =
-            index === 0 ? cleanedAudio1Path : cleanedAudio2Path;
+    //   const cleanAudioPromises = [audioFile1Path, audioFile2Path].map(
+    //     (audioPath, index) => {
+    //       const cleanedAudioPath =
+    //         index === 0 ? cleanedAudio1Path : cleanedAudio2Path;
 
-          return new Promise<void>((resolve, reject) => {
-            Ffmpeg(audioPath)
-              .outputOptions("-vn")
-              .toFormat("mp3")
-              .save(cleanedAudioPath)
-              .on("end", () => {
-                fs.unlink(audioPath, (err) => {
-                  if (err)
-                    console.error(`Error deleting file: ${audioPath}`, err);
-                });
-                resolve();
-              })
-              .on("error", (err) => {
-                console.error("Error processing audio file:", err);
-                reject(err);
-              });
-          });
-        }
-      );
+    //       return new Promise<void>((resolve, reject) => {
+    //         Ffmpeg(audioPath)
+    //           .outputOptions("-vn")
+    //           .toFormat("mp3")
+    //           .save(cleanedAudioPath)
+    //           .on("end", () => {
+    //             fs.unlink(audioPath, (err) => {
+    //               if (err)
+    //                 console.error(`Error deleting file: ${audioPath}`, err);
+    //             });
+    //             resolve();
+    //           })
+    //           .on("error", (err) => {
+    //             console.error("Error processing audio file:", err);
+    //             reject(err);
+    //           });
+    //       });
+    //     }
+    //   );
 
-      await Promise.all(cleanAudioPromises);
+    //   await Promise.all(cleanAudioPromises);
 
-      await new Promise<void>((resolve, reject) => {
-        Ffmpeg(videoFilePath)
-          .addInput(cleanedAudio1Path)
-          .addInput(cleanedAudio2Path)
-          .outputOptions("-c:v copy")
-          .save(outputVideoFilePath)
-          .on("end", async () => {
-            fs.unlink(cleanedAudio1Path, (err) => {
-              if (err)
-                console.error(`Error deleting file: ${cleanedAudio1Path}`, err);
-            });
-            fs.unlink(cleanedAudio2Path, (err) => {
-              if (err)
-                console.error(`Error deleting file: ${cleanedAudio2Path}`, err);
-            });
-            fs.unlink(videoFilePath, (err) => {
-              if (err)
-                console.error(`Error deleting file: ${videoFilePath}`, err);
-            });
+    //   await new Promise<void>((resolve, reject) => {
+    //     Ffmpeg(videoFilePath)
+    //       .addInput(cleanedAudio1Path)
+    //       .addInput(cleanedAudio2Path)
+    //       .outputOptions("-c:v copy")
+    //       .save(outputVideoFilePath)
+    //       .on("end", async () => {
+    //         fs.unlink(cleanedAudio1Path, (err) => {
+    //           if (err)
+    //             console.error(`Error deleting file: ${cleanedAudio1Path}`, err);
+    //         });
+    //         fs.unlink(cleanedAudio2Path, (err) => {
+    //           if (err)
+    //             console.error(`Error deleting file: ${cleanedAudio2Path}`, err);
+    //         });
+    //         fs.unlink(videoFilePath, (err) => {
+    //           if (err)
+    //             console.error(`Error deleting file: ${videoFilePath}`, err);
+    //         });
 
-            const db = await getDatabase();
-            const videoPath = files.videoFile;
+    //         const db = await getDatabase();
+    //         const videoPath = files.videoFile;
 
-            if (videoPath) {
-              db.collection("one-to-one-messages").insertOne({
-                _id: new ObjectId(),
-                senderId: new ObjectId(senderId),
-                receiverId: new ObjectId(receiverId),
-                filePath: `output_${videoPath[0].originalname}`,
-                timming,
-                seen: false,
-                type: "recording",
-              });
-            }
+    //         if (videoPath) {
+    //           db.collection("one-to-one-messages").insertOne({
+    //             _id: new ObjectId(),
+    //             senderId: new ObjectId(senderId),
+    //             receiverId: new ObjectId(receiverId),
+    //             filePath: `output_${videoPath[0].originalname}`,
+    //             timming,
+    //             seen: false,
+    //             type: "recording",
+    //           });
+    //         }
 
-            resolve();
-          })
-          .on("error", (err) => {
-            console.error("Error processing video:", err);
-            reject(err);
-          });
-      });
+    //         resolve();
+    //       })
+    //       .on("error", (err) => {
+    //         console.error("Error processing video:", err);
+    //         reject(err);
+    //       });
+    //   });
 
-      res.status(200).send({
-        message: "Video updated successfully.",
-        outputVideoFile: outputVideoFilePath,
-      });
-    } catch (error) {
-      console.error("Processing error:", error);
-      res.status(500).send("Error processing files.");
-    }
+    //   res.status(200).send({
+    //     message: "Video updated successfully.",
+    //     outputVideoFile: outputVideoFilePath,
+    //   });
+    // } catch (error) {
+    //   console.error("Processing error:", error);
+    //   res.status(500).send("Error processing files.");
+    // }
   }
 );
 
