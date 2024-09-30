@@ -1,4 +1,4 @@
-import express, { Application, NextFunction, Request, Response } from "express";
+import express, { Application, Request, Response } from "express";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { createServer, Server as HTTPServer } from "http";
 // import { exec } from "child_process";
@@ -363,23 +363,6 @@ app.post(
     }
   }
 );
-
-app.post('/upload-recording/', upload.fields([
-  { name: 'videoFile', maxCount: 1 },
-  { name: 'audioFile1', maxCount: 1 },
-  { name: 'audioFile2', maxCount: 1 },
-]), async (req, res) => {
-  console.log(req.body);
-  console.log(req.files);
-
-  // Check if files were uploaded
-  if (!req.files) {
-    return res.status(400).send("Missing required files.");
-  }
-
-  // Your existing processing logic goes here
-  res.status(200).send("Files uploaded successfully.");
-});
 
 app.get("/recording/:filename", (req, res) => {
   const { filename } = req.params;
