@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from "express";
+import express, { Application, NextFunction, Request, Response } from "express";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { createServer, Server as HTTPServer } from "http";
 // import { exec } from "child_process";
@@ -57,7 +57,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: "*",
+    origin: "https://wiredtalk.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -66,7 +66,7 @@ app.use(
 const server: HTTPServer = createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: "*",
+    origin: "https://wiredtalk.vercel.app",
     methods: ["GET", "POST"],
   },
 });
@@ -388,6 +388,15 @@ app.post("/recording/delete/", async (req, res) => {
   db.collection("one-to-one-messages").deleteOne({ filePath: filename });
 
   res.status(200).send("Recording Deleted successfully!");
+});
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(500).send(err.message);
+  } else if (err) {
+    return res.status(500).send(err);
+  }
+  next();
 });
 
 const PORT: string | number = process.env.PORT || 5000;
