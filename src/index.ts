@@ -282,7 +282,9 @@ app.post(
 
       const mergedAudioFilePath = path.join(
         uploadsDir,
-        `${files.videoFile[0].originalname.replace("video-", "audio-").replace(".mp4", ".mp3")}`
+        `${files.videoFile[0].originalname
+          .replace("video-", "audio-")
+          .replace(".mp4", ".mp3")}`
       );
 
       const outputVideoFilePath = path.join(
@@ -317,21 +319,18 @@ app.post(
 
       await Promise.all(cleanAudioPromises);
 
-      console.log(tmpdir());
       await new Promise<void>((resolve, reject) => {
         Ffmpeg()
-            .input(cleanedAudio1Path)
-            .input(cleanedAudio2Path)
-            .on('end', () => {
-                console.log('Merging finished!');
-                resolve();
-            })
-            .on('error', (err) => {
-                console.error('Error:', err);
-                reject(err);
-            })
-            .mergeToFile(mergedAudioFilePath, tmpdir());
-
+          .input(cleanedAudio1Path)
+          .input(cleanedAudio2Path)
+          .on("end", () => {
+            resolve();
+          })
+          .on("error", (err) => {
+            console.error("Error:", err);
+            reject(err);
+          })
+          .save(mergedAudioFilePath);
 
         Ffmpeg(videoFilePath)
           .addInput(cleanedAudio1Path)
@@ -371,12 +370,10 @@ app.post(
                   type: "recording",
                 });
 
-              res
-                .status(200)
-                .send({
-                  message: "Recording uploaded successfully.",
-                  recordingId: result.insertedId,
-                });
+              res.status(200).send({
+                message: "Recording uploaded successfully.",
+                recordingId: result.insertedId,
+              });
             }
 
             resolve();
