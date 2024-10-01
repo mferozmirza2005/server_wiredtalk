@@ -10,6 +10,7 @@ import { getDb } from "./db/db";
 import webPush from "web-push";
 import dotenv from "dotenv";
 import multer from "multer";
+import { tmpdir } from "os";
 import cors from "cors";
 import path from "path";
 import fs from "fs";
@@ -278,6 +279,12 @@ app.post(
         uploadsDir,
         `${files.audioFile2[0].originalname.split(".")[0]}.mp3`
       );
+
+      const mergedAudioFilePath = path.join(
+        uploadsDir,
+        `${files.videoFile[0].originalname.replace("video-", "audio-").replace(".mp4", ".mp3")}`
+      );
+
       const outputVideoFilePath = path.join(
         uploadsDir,
         `${files.videoFile[0].originalname.replace("video-", "")}`
@@ -310,7 +317,22 @@ app.post(
 
       await Promise.all(cleanAudioPromises);
 
+      console.log(tmpdir());
       await new Promise<void>((resolve, reject) => {
+        Ffmpeg()
+            .input(cleanedAudio1Path)
+            .input(cleanedAudio2Path)
+            .on('end', () => {
+                console.log('Merging finished!');
+                resolve();
+            })
+            .on('error', (err) => {
+                console.error('Error:', err);
+                reject(err);
+            })
+            .mergeToFile(mergedAudioFilePath, tmpdir());
+
+
         Ffmpeg(videoFilePath)
           .addInput(cleanedAudio1Path)
           .addInput(cleanedAudio2Path)
@@ -332,17 +354,29 @@ app.post(
 
             const db = await getDatabase();
             if (files.videoFile) {
-              const videoPath = files.videoFile[0].originalname.replace("video-", "");
-              
-              db.collection("one-to-one-messages").insertOne({
-                _id: new ObjectId(),
-                senderId: new ObjectId(senderId),
-                receiverId: new ObjectId(receiverId),
-                filePath: videoPath,
-                timming,
-                seen: false,
-                type: "recording",
-              });
+              const videoPath = files.videoFile[0].originalname.replace(
+                "video-",
+                ""
+              );
+
+              const result = await db
+                .collection("one-to-one-messages")
+                .insertOne({
+                  _id: new ObjectId(),
+                  senderId: new ObjectId(senderId),
+                  receiverId: new ObjectId(receiverId),
+                  filePath: videoPath,
+                  timming,
+                  seen: false,
+                  type: "recording",
+                });
+
+              res
+                .status(200)
+                .send({
+                  message: "Recording uploaded successfully.",
+                  recordingId: result.insertedId,
+                });
             }
 
             resolve();
@@ -352,8 +386,6 @@ app.post(
             reject(err);
           });
       });
-
-      res.status(200).send("Recording uploaded successfully.");
     } catch (error) {
       console.error("Processing error:", error);
       res.status(500).send("Error processing files.");
@@ -416,6 +448,14 @@ io.on("connection", (socket: Socket) => {
 
   socket.on("recording", (data) => {
     io.emit("recording", data);
+  });
+
+  socket.on("recording-save", (data) => {
+    io.emit("recording-save", data);
+  });
+
+  socket.on("recording-delete", (data) => {
+    io.emit("recording-delete", data);
   });
 
   socket.on("one-to-one-message", (data) => {
