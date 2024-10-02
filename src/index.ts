@@ -222,8 +222,7 @@ app.post(
   "/uploads/",
   upload.fields([
     { name: "videoFile", maxCount: 1 },
-    { name: "audioFile1", maxCount: 1 },
-    { name: "audioFile2", maxCount: 1 },
+    { name: "audioFile", maxCount: 1 },
   ]),
   async (req, res) => {
     if (!req.files) {
@@ -242,17 +241,14 @@ app.post(
 
     const files = req.files as {
       videoFile?: Express.Multer.File[];
-      audioFile1?: Express.Multer.File[];
-      audioFile2?: Express.Multer.File[];
+      audioFile?: Express.Multer.File[];
     };
 
     if (
       !files.videoFile ||
       files.videoFile.length === 0 ||
-      !files.audioFile1 ||
-      files.audioFile1.length === 0 ||
-      !files.audioFile2 ||
-      files.audioFile2.length === 0
+      !files.audioFile ||
+      files.audioFile.length === 0
     ) {
       return res.status(400).send("Missing required files.");
     }
@@ -262,29 +258,9 @@ app.post(
         uploadsDir,
         files.videoFile[0].originalname
       );
-      const audioFile1Path = path.join(
+      const audioFilePath = path.join(
         uploadsDir,
-        files.audioFile1[0].originalname
-      );
-      const audioFile2Path = path.join(
-        uploadsDir,
-        files.audioFile2[0].originalname
-      );
-
-      const cleanedAudio1Path = path.join(
-        uploadsDir,
-        `${files.audioFile1[0].originalname.split(".")[0]}.mp3`
-      );
-      const cleanedAudio2Path = path.join(
-        uploadsDir,
-        `${files.audioFile2[0].originalname.split(".")[0]}.mp3`
-      );
-
-      const mergedAudioFilePath = path.join(
-        uploadsDir,
-        `${files.videoFile[0].originalname
-          .replace("video-", "audio-")
-          .replace(".mp4", ".mp3")}`
+        files.audioFile[0].originalname
       );
 
       const outputVideoFilePath = path.join(
@@ -292,65 +268,19 @@ app.post(
         `${files.videoFile[0].originalname.replace("video-", "")}`
       );
 
-      const cleanAudioPromises = [audioFile1Path, audioFile2Path].map(
-        (audioPath, index) => {
-          const cleanedAudioPath =
-            index === 0 ? cleanedAudio1Path : cleanedAudio2Path;
-
-          return new Promise<void>((resolve, reject) => {
-            Ffmpeg(audioPath)
-              .outputOptions("-vn")
-              .toFormat("mp3")
-              .save(cleanedAudioPath)
-              .on("end", () => {
-                fs.unlink(audioPath, (err) => {
-                  if (err)
-                    console.error(`Error deleting file: ${audioPath}`, err);
-                });
-                resolve();
-              })
-              .on("error", (err) => {
-                console.error("Error processing audio file:", err);
-                reject(err);
-              });
-          });
-        }
-      );
-
-      await Promise.all(cleanAudioPromises);
-
       await new Promise<void>((resolve, reject) => {
-        // Ffmpeg()
-        //   .input(cleanedAudio1Path)
-        //   .input(cleanedAudio2Path)
-        //   .on("end", () => {
-        //     resolve();
-        //   })
-        //   .on("error", (err) => {
-        //     console.error("Error:", err);
-        //     reject(err);
-        //   })
-        //   .save(mergedAudioFilePath);
-
         Ffmpeg(videoFilePath)
-          .addInput(cleanedAudio1Path)
-          .setStartTime(0)
-          .addInput(cleanedAudio2Path)
-          .setStartTime(0)
+          .addInput(audioFilePath)
           .outputOptions("-c:v copy")
           .save(outputVideoFilePath)
           .on("end", async () => {
-            fs.unlink(cleanedAudio1Path, (err) => {
-              if (err)
-                console.error(`Error deleting file: ${cleanedAudio1Path}`, err);
-            });
-            fs.unlink(cleanedAudio2Path, (err) => {
-              if (err)
-                console.error(`Error deleting file: ${cleanedAudio2Path}`, err);
-            });
             fs.unlink(videoFilePath, (err) => {
               if (err)
                 console.error(`Error deleting file: ${videoFilePath}`, err);
+            });
+            fs.unlink(audioFilePath, (err) => {
+              if (err)
+                console.error(`Error deleting file: ${audioFilePath}`, err);
             });
 
             const db = await getDatabase();
