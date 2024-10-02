@@ -320,21 +320,23 @@ app.post(
       await Promise.all(cleanAudioPromises);
 
       await new Promise<void>((resolve, reject) => {
-        Ffmpeg()
-          .input(cleanedAudio1Path)
-          .input(cleanedAudio2Path)
-          .on("end", () => {
-            resolve();
-          })
-          .on("error", (err) => {
-            console.error("Error:", err);
-            reject(err);
-          })
-          .save(mergedAudioFilePath);
+        // Ffmpeg()
+        //   .input(cleanedAudio1Path)
+        //   .input(cleanedAudio2Path)
+        //   .on("end", () => {
+        //     resolve();
+        //   })
+        //   .on("error", (err) => {
+        //     console.error("Error:", err);
+        //     reject(err);
+        //   })
+        //   .save(mergedAudioFilePath);
 
         Ffmpeg(videoFilePath)
           .addInput(cleanedAudio1Path)
+          .setStartTime(0)
           .addInput(cleanedAudio2Path)
+          .setStartTime(0)
           .outputOptions("-c:v copy")
           .save(outputVideoFilePath)
           .on("end", async () => {
